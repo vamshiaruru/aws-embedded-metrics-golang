@@ -193,6 +193,27 @@ func (l *Logger) MetricsFloatAs(m map[string]float64, unit MetricUnit) *Logger {
 	return l
 }
 
+func (l *Logger) Output() map[string]interface{} {
+	var metrics []MetricDirective
+	if len(l.defaultContext.metricDirective.Metrics) > 0 {
+		metrics = append(metrics, l.defaultContext.metricDirective)
+	}
+	for _, v := range l.contexts {
+		if len(v.metricDirective.Metrics) > 0 {
+			metrics = append(metrics, v.metricDirective)
+		}
+	}
+	if len(metrics) == 0 {
+		return nil
+	}
+	l.values["_aws"] = Metadata{
+		Timestamp:    l.timestamp,
+		Metrics:      metrics,
+		LogGroupName: l.logGroupName,
+	}
+	return l.values
+}
+
 // Log prints all Contexts and metric values to chosen output in Embedded Metric Format.
 func (l *Logger) Log() {
 	var metrics []MetricDirective
